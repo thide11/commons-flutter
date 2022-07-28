@@ -21,7 +21,7 @@ class DioHttpClient implements AppHttpClient {
     String Function()? getToken,
     ErrorHttpInterceptor? errorInterceptor,
   }) {
-    _timeout = timeout ?? LibConstants.defaultTimeoutTenSeconds;
+    _timeout = timeout ?? LibConstants.defaultTimeout;
     _dio = Dio(BaseOptions(
       connectTimeout: _timeout,
       receiveTimeout: _timeout,
