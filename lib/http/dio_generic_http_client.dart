@@ -1,37 +1,41 @@
 import 'package:commons_flutter/constants/lib_constants.dart';
 import 'package:commons_flutter/exceptions/app_error.dart';
-import 'package:commons_flutter/http/app_custom_http_interceptor.dart';
 import 'package:commons_flutter/http/http_interceptor.dart';
 import 'package:commons_flutter/utils/app_string_utils.dart';
 import 'package:commons_flutter/utils/network_utils.dart';
 import 'package:dio/dio.dart';
 import 'app_http_client.dart';
-import 'app_interceptor.dart';
+import 'http_interceptor_to_dio_interceptor.dart';
 import 'http_request_config.dart';
+import 'logger_http_interceptor.dart';
 
 class DioHttpClient implements AppHttpClient {
-  String? _baseUrl;
+  final String? _baseUrl;
   Dio? _dio;
   String Function()? _getToken;
   int? _timeout;
-  ErrorHttpInterceptor? errorInterceptor;
   DioHttpClient(
-    String baseUrl, {
-    int? timeout,
+    this._baseUrl, {
+    timeout,
     String Function()? getToken,
-    ErrorHttpInterceptor? errorInterceptor,
+    bool enableLogger = true,
+    List<HttpInterceptor>? interceptors,
   }) {
     _timeout = timeout ?? LibConstants.defaultTimeout;
     _dio = Dio(BaseOptions(
       connectTimeout: _timeout,
       receiveTimeout: _timeout,
     ));
-    _baseUrl = baseUrl;
     _getToken = getToken;
-    _dio?.interceptors.add(AppInterceptor());
-    if (errorInterceptor != null) {
-      _dio?.interceptors.add(AppCustomHttpInterceptor(errorInterceptor));
-      this.errorInterceptor = errorInterceptor;
+
+    interceptors?.forEach((interceptor) {
+      _dio?.interceptors.add(HttpInterceptorToDioInterceptor(interceptor));
+    });
+
+    if(enableLogger) {
+      _dio?.interceptors.add(HttpInterceptorToDioInterceptor(
+        LoggerHttpInterceptor()
+      ));
     }
   }
 
@@ -57,43 +61,31 @@ class DioHttpClient implements AppHttpClient {
 
   Future<T?> _executeRequest<T>(
       String method, String url, data, HttpRequestConfig? options) async {
-    try {
-      await NetworkUtils.validateInternet();
-      var configOptions = _getRequestOptions(method, url, data, options);
-      _dio!.options.connectTimeout = options?.timeout ?? _timeout!;
+    await NetworkUtils.validateInternet();
+    var configOptions = _getRequestOptions(method, url, data, options);
+    _dio!.options.connectTimeout = options?.timeout ?? _timeout!;
 
-      url = "${options?.baseUrl ?? _baseUrl}$url";
+    url = "${options?.baseUrl ?? _baseUrl}$url";
 
-      var response = await _dio!.request(
-        url,
-        data: data,
-        options: configOptions,
-        onReceiveProgress: options?.receiveProgress,
-      );
-      _dio!.options.connectTimeout = _timeout!;
-      if (response.data != null) {
-        if (HttpResponseType.bytes != options?.responseType) {
-          if (response.data['status'] == 'erro') {
-            throw AppError(response.data['mensagem'],
-                data: response.requestOptions);
-          }
-        } else {
-          return response as T;
+    var response = await _dio!.request(
+      url,
+      data: data,
+      options: configOptions,
+      onReceiveProgress: options?.receiveProgress,
+    );
+    _dio!.options.connectTimeout = _timeout!;
+    if (response.data != null) {
+      if (HttpResponseType.bytes != options?.responseType) {
+        if (response.data['status'] == 'erro') {
+          throw AppError(response.data['mensagem'],
+              data: response.requestOptions);
         }
-        return response.data;
-      }
-      return null;
-    } catch (err) {
-      if (errorInterceptor == null) rethrow;
-
-      if (err is AppError) {
-        errorInterceptor?.handleCustomError(err);
       } else {
-        errorInterceptor
-            ?.handleCustomError(AppError(err.toString(), data: err));
+        return response as T;
       }
-      rethrow;
+      return response.data;
     }
+    return null;
   }
 
   Options _getRequestOptions(

@@ -9,15 +9,25 @@ void main() {
         var formated = AppDateUtils.formatDate(date);
         expect(formated, equals("2022-01-20 12:00:00"));
       });
+
+      _formatDate(int date) {
+        if (date < 10) {
+          return "0$date";
+        }
+        return date;
+      }
+
       test(
           'if no date is provided should return now date formated as yyyy-MM-dd HH:mm:ss',
           () {
         var date = DateTime.now();
         var formated = AppDateUtils.formatDate(null);
         expect(
-            formated,
-            equals(
-                "${date.year}-${date.month < 10 ? "0${date.month}" : date.month}-${date.day} ${date.hour}:${date.minute}:${date.second}"));
+          formated,
+          equals(
+            "${date.year}-${_formatDate(date.month)}-${_formatDate(date.day)} ${_formatDate(date.hour)}:${_formatDate(date.minute)}:${_formatDate(date.second)}",
+          ),
+        );
       });
     });
 
@@ -40,7 +50,7 @@ void main() {
     group('[stringToDate]', () {
       test('should return false in case day is different', () {
         var date1 = DateTime.now();
-        var date2 = DateTime.now().add(Duration(days: 1));
+        var date2 = DateTime.now().add(const Duration(days: 1));
 
         expect(AppDateUtils.isSameDate(date1, date2), isFalse);
       });

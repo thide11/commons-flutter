@@ -1,25 +1,18 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:commons_flutter/exceptions/app_error.dart';
-import 'package:dio/dio.dart';
 
-import 'app_http_error_detail.dart';
+import 'commom_request_options.dart';
 
-abstract class ErrorHttpInterceptor extends Interceptor {
-  void errorInterceptor(AppHttpErrorDetail errorDetail);
-
-  void handleCustomError(AppError error) {
-    if (error.data is RequestOptions) {
-      var request = error.data as RequestOptions;
-      errorInterceptor(AppHttpErrorDetail(
-          dateTime: DateTime.now(),
-          baseUrl: request.baseUrl,
-          errorMessage: error.message,
-          headers: request.headers,
-          httpMethod: request.method,
-          originalError: error,
-          path: request.path,
-          requestPayload: request.data,
-          statusCode: 200,
-          url: request.uri.toString()));
-    }
+abstract class HttpInterceptor {
+  void onRequest(CommonRequestOptions options) {}
+  void onResponse(CommonRequestOptions response) {}
+  //The bool is if should try make the request again or no
+  Future<bool> onError(
+    AppError err,
+    CommonRequestOptions options,
+    String responseMessage,
+    String responsePayload,
+  ) async {
+    return false;
   }
 }
