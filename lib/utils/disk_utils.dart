@@ -4,9 +4,9 @@ import 'package:archive/archive.dart';
 import 'package:byte_size/byte_size.dart';
 import 'package:filesize/filesize.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:disk_space/disk_space.dart';
 import 'package:file_manager/file_manager.dart';
+import 'package:storage_info/storage_info.dart';
 
 class DiskUtils {
   static Future<double> getInternalFreeDiskSpace() async {
@@ -30,6 +30,8 @@ class DiskUtils {
     return diskSpace;
   }
 
+  static Future<String> getFormatedTotalInternalDiskSpace() => getTotalDiskSpace();
+
   static Future<String> getDiskSpaceUsed() async {
     try {
       Directory dir = await getApplicationDocumentsDirectory();
@@ -41,15 +43,19 @@ class DiskUtils {
     }
   }
 
+  static Future<Directory> getExternalStorageDirectory() async {
+    var list = await FileManager.getStorageList();
+    if (list.length > 1) {
+      return list[1];
+    }
+    throw Exception("This device don´t have external storage");
+  }
+
   static Future<double> getExternalFreeDiskSpace() async {
     try {
-      var list = await FileManager.getStorageList();
-      if (list.length > 1) {
-        var space = await DiskSpace.getFreeDiskSpaceForPath(list[1].path);
-        return space ?? 0;
-      }
-
-      return 0;
+      final externalDirectory = await getExternalStorageDirectory();
+      final space = await DiskSpace.getFreeDiskSpaceForPath(externalDirectory.path);
+      return space ?? 0;
     } catch (err) {
       return 0;
     }
@@ -72,20 +78,20 @@ class DiskUtils {
     return ByteSize.FromMegaBytes(space).toString('GB', 2);
   }
 
+  static Future<String> getFormatedTotalExternalDiskSpace() async {
+    final space = await StorageInfo.getExternalStorageFreeSpace;
+    return ByteSize.FromBytes(space).toString('GB', 2);
+  }
+
   static Future<double?> getFreeDiskSpace() async {
     var diskSpace = await DiskSpace.getFreeDiskSpace;
     return diskSpace;
   }
 
   static Future<String> getRootPath({bool isExternal = false}) async {
-    var allowedExternalStorage = false;
-
-    if (Platform.isAndroid) {
-      allowedExternalStorage = await Permission.storage.request().isGranted;
-    }
-    if (allowedExternalStorage && isExternal) {
-      Directory? externalDirectory = await getExternalStorageDirectory();
-      if (externalDirectory != null) return externalDirectory.path;
+    if (isExternal) {
+      final directory = await getExternalStorageDirectory();
+      return directory.path;
     }
     Directory internalDirectory = await getApplicationDocumentsDirectory();
     return internalDirectory.path;
@@ -104,7 +110,6 @@ class DiskUtils {
         Directory("$rootPath/$filename").create(recursive: true);
       }
     }
-    print(rootPath);
     return rootPath;
   }
 
@@ -150,13 +155,6 @@ class DiskUtils {
   static Future<bool> hasExternalDisk() async {
     if (Platform.isIOS) return false;
     var list = await FileManager.getStorageList();
-    var local = await getApplicationDocumentsDirectory();
-    var extPath = await getExternalPath();
-    var ext = await getExternalStorageDirectory();
-    print(local.path);
-    print(ext?.path);
-    print(extPath);
-    print(local.path);
     return list.length > 1;
   }
 }

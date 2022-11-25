@@ -1,0 +1,21 @@
+name: creator_activity_test
+description: Aplicativo que mostra as funcionalidades do creator activity
+
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.17.6 <3.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  commons_flutter:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true

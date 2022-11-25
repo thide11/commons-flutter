@@ -1,6 +1,6 @@
 name: commons_flutter
 description: Funções utilitárias de baixo nível para o Flutter
-version: 0.0.4
+version: 0.0.5
 homepage:
 
 environment:
@@ -15,6 +15,7 @@ dependencies:
   dio: ^4.0.0
   disk_space: ^0.2.1
   filesize: ^2.0.1
+  storage_info: ^0.0.1
   flutter:
     sdk: flutter
   intl: ^0.17.0
