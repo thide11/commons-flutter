@@ -14,6 +14,10 @@ class DiskUtils {
     return space ?? 0;
   }
 
+  static bool existPath(String path) {
+    return Directory(path).existsSync();
+  }
+
   static Future<String> getFormatedInternalFreeDiskSpace() async {
     var space = await getInternalFreeDiskSpace();
     var diskSpace = ByteSize.FromMegaBytes(space).toString('GB', 2);
