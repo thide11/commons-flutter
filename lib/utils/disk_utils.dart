@@ -88,6 +88,11 @@ class DiskUtils {
     return diskSpace;
   }
 
+  static Future<String> getTempPath() async {
+    final tempDir = await getTemporaryDirectory();
+    return tempDir.path;
+  }
+
   static Future<String> getRootPath({bool isExternal = false}) async {
     if (isExternal) {
       final directory = await getExternalStorageDirectory();
@@ -125,9 +130,7 @@ class DiskUtils {
     var dir = Directory(path);
     try {
       if (dir.existsSync()) {
-        dir
-            .listSync(recursive: true, followLinks: false)
-            .forEach((FileSystemEntity entity) {
+        dir.listSync(recursive: true, followLinks: false).forEach((FileSystemEntity entity) {
           if (entity is File) {
             totalSize += entity.lengthSync();
           }
@@ -139,8 +142,7 @@ class DiskUtils {
     return totalSize;
   }
 
-  static Future<int> getFolderSize(
-      {String? path, bool isExternal = false}) async {
+  static Future<int> getFolderSize({String? path, bool isExternal = false}) async {
     var userClassPath = path ?? await getRootPath(isExternal: isExternal);
     var size = await getPathSize(userClassPath);
     size = size < 1024 * 1024 ? 0 : size;

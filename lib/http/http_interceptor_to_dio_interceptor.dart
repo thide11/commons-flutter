@@ -1,3 +1,4 @@
+import 'package:commons_flutter/extensions/dio_request_options_extension.dart';
 import 'package:dio/dio.dart';
 
 import '../exceptions/app_error.dart';
@@ -22,14 +23,14 @@ class HttpInterceptorToDioInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final appOptions = _convertRequestOptionsToOptions(options);
+    final appOptions = options.toCommomRequestOptions();
     _interceptor.onRequest(appOptions);
     super.onRequest(options, handler);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    final options = _convertRequestOptionsToOptions(response.requestOptions, response.statusCode);
+    final options = response.requestOptions.toCommomRequestOptions(response.statusCode);
     _interceptor.onResponse(options);
     super.onResponse(response, handler);
   }
@@ -40,16 +41,15 @@ class HttpInterceptorToDioInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     final shouldTryAgain = await _interceptor.onError(
-      err is AppError ? err as AppError : AppError(err.toString(), data: err),
-      _convertRequestOptionsToOptions(err.requestOptions, err.response?.statusCode),
-      err.response?.data.toString() ?? "",
-      err.message
-    );
-    if(shouldTryAgain) {
+        err is AppError ? err as AppError : AppError(err.toString(), data: err),
+        _convertRequestOptionsToOptions(err.requestOptions, err.response?.statusCode),
+        err.response?.data.toString() ?? "",
+        err.message);
+    if (shouldTryAgain) {
       final response = await Dio().fetch(err.requestOptions);
       handler.resolve(response);
     } else {
       handler.next(err);
-    } 
+    }
   }
 }
