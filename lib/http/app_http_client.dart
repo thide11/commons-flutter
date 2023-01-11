@@ -26,7 +26,7 @@ class AppResponse {
   Map<String, List<String>> headers;
   int? statusCode;
   String? statusMessage;
-  dynamic body;
+  Map<String, dynamic> body;
   CommonRequestOptions? requestOptions;
   AppResponse({
     required this.headers,
