@@ -22,23 +22,53 @@ class CancelDownload {
   }
 }
 
-class AppResponse {
+class AppResponseBase {
   Map<String, List<String>> headers;
   int? statusCode;
   String? statusMessage;
-  Map<String, dynamic> body;
   CommonRequestOptions? requestOptions;
-  AppResponse({
+  AppResponseBase({
     required this.headers,
     required this.statusCode,
     required this.statusMessage,
-    required this.body,
     required this.requestOptions,
   });
 }
 
+class AppResponse extends AppResponseBase {
+  Map<String, dynamic> body;
+  AppResponse({
+    required Map<String, List<String>> headers,
+    int? statusCode,
+    String? statusMessage,
+    required this.body,
+    CommonRequestOptions? requestOptions,
+  }) : super(
+          headers: headers,
+          statusCode: statusCode,
+          statusMessage: statusMessage,
+          requestOptions: requestOptions,
+        );
+}
+
+class DownloadAppResponse extends AppResponseBase {
+  dynamic body;
+  DownloadAppResponse({
+    required Map<String, List<String>> headers,
+    int? statusCode,
+    String? statusMessage,
+    required this.body,
+    CommonRequestOptions? requestOptions,
+  }) : super(
+          headers: headers,
+          statusCode: statusCode,
+          statusMessage: statusMessage,
+          requestOptions: requestOptions,
+        );
+}
+
 abstract class AppHttpClient {
-  Future<AppResponse> download<T>(
+  Future<DownloadAppResponse> download<T>(
     String url,
     String outputPath, {
     CancelDownload? cancelDownload,

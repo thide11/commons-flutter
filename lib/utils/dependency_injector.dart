@@ -2,7 +2,7 @@ abstract class DependencyInjector {
   static late DependencyInjector injector;
 
   static init(DependencyInjector injector) {
-    injector = injector;
+    DependencyInjector.injector = injector;
   }
 
   T getInstance<T extends Object>({
@@ -16,13 +16,13 @@ abstract class DependencyInjector {
     List<Type>? typesInRequestList,
     T? defaultValue,
   }) {
-    return injector.getInstance(
+    return injector.getInstance<T>(
       typesInRequestList: typesInRequestList,
       defaultValue: defaultValue,
     );
   }
 
   static bool dispose<T extends Object>() {
-    return injector.disposeInstance();
+    return injector.disposeInstance<T>();
   }
 }

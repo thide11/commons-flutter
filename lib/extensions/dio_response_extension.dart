@@ -12,4 +12,14 @@ extension DioResponseExtension on Response {
       requestOptions: requestOptions.toCommomRequestOptions(),
     );
   }
+
+  DownloadAppResponse toDownloadAppResponse() {
+    return DownloadAppResponse(
+      body: data,
+      headers: headers.map,
+      statusCode: statusCode,
+      statusMessage: statusMessage,
+      requestOptions: requestOptions.toCommomRequestOptions(),
+    );
+  }
 }

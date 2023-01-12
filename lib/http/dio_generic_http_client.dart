@@ -35,7 +35,9 @@ class DioHttpClient implements AppHttpClient {
     });
 
     if (enableLogger) {
-      _dio.interceptors.add(HttpInterceptorToDioInterceptor(LoggerHttpInterceptor()));
+      _dio.interceptors.add(
+        HttpInterceptorToDioInterceptor(LoggerHttpInterceptor()),
+      );
     }
   }
 
@@ -59,7 +61,12 @@ class DioHttpClient implements AppHttpClient {
     return _executeRequest("POST", url, data, options);
   }
 
-  Future<AppResponse> _executeRequest<T>(String method, String url, dynamic data, HttpRequestConfig? options) async {
+  Future<AppResponse> _executeRequest<T>(
+    String method,
+    String url,
+    dynamic data,
+    HttpRequestConfig? options,
+  ) async {
     await NetworkUtils.validateInternet();
     var configOptions = _getRequestOptions(method, options);
     _dio.options.connectTimeout = options?.timeout ?? _timeout!;
@@ -76,7 +83,10 @@ class DioHttpClient implements AppHttpClient {
     if (response.data != null) {
       if (HttpResponseType.bytes != options?.responseType) {
         if (response.data['status'] == 'erro') {
-          throw AppError(response.data['mensagem'], data: response.requestOptions);
+          throw AppError(
+            response.data['mensagem'],
+            data: response.requestOptions,
+          );
         }
       } else {
         return response.toAppResponse();
@@ -88,7 +98,8 @@ class DioHttpClient implements AppHttpClient {
   Options _getRequestOptions(String method, [HttpRequestConfig? options]) {
     var headers = options?.headers ?? {};
     var token = options?.token ?? (_getToken != null ? _getToken!() : null);
-    if (headers['Authorization'] == null && !AppStringUtils.isEmptyOrNull(token)) {
+    if (headers['Authorization'] == null &&
+        !AppStringUtils.isEmptyOrNull(token)) {
       headers['Authorization'] = 'Bearer $token';
     }
     headers['Content-Type'] = options?.contentType ?? "application/json";
@@ -115,7 +126,7 @@ class DioHttpClient implements AppHttpClient {
   }
 
   @override
-  Future<AppResponse> download<T>(String url, String outputPath,
+  Future<DownloadAppResponse> download<T>(String url, String outputPath,
       {CancelDownload? cancelDownload, HttpRequestConfig? options}) async {
     await NetworkUtils.validateInternet();
     var configOptions = _getRequestOptions("GET");
@@ -130,7 +141,8 @@ class DioHttpClient implements AppHttpClient {
       });
     }
 
-    final accessUrl = url.contains("http") ? url : "${options?.baseUrl ?? _baseUrl}$url";
+    final accessUrl =
+        url.contains("http") ? url : "${options?.baseUrl ?? _baseUrl}$url";
     try {
       final response = await _dio.download(
         accessUrl,
@@ -139,7 +151,7 @@ class DioHttpClient implements AppHttpClient {
         onReceiveProgress: options?.receiveProgress,
         options: configOptions,
       );
-      return response.toAppResponse();
+      return response.toDownloadAppResponse();
     } catch (e) {
       if (e is DioError && e.type == DioErrorType.cancel) {
         throw AppError("Usuário cancelou o download");
